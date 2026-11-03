@@ -1,5 +1,4 @@
 #include "socket_utils.h"
-
 #include <arpa/inet.h>
 #include <climits>
 #include <cstdio>
