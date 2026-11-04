@@ -97,16 +97,31 @@ bool receiveStatus(int socketFd)
     return true;
 }
 
+// Meldet einen Benutzer am Server an.
+bool login(int socketFd)
+{
+    std::string username;
+    std::string password;
+
+    if (!readUsername("Benutzername: ", username) ||
+        !readInput("Passwort: ", password))
+    {
+        return false;
+    }
+
+    return sendAll(socketFd, "LOGIN\n" + username + "\n" + password + "\n") &&
+           receiveStatus(socketFd);
+}
+
 // Erfasst eine Nachricht und sendet sie an den Server.
+// Der Absender wird vom Server aus der Sitzung uebernommen.
 bool sendMessage(int socketFd)
 {
-    std::string sender;
     std::string receiver;
     std::string subject;
     std::string line;
 
-    if (!readUsername("Absender: ", sender) ||
-        !readUsername("Empfaenger: ", receiver))
+    if (!readUsername("Empfaenger: ", receiver))
     {
         return false;
     }
@@ -127,7 +142,7 @@ bool sendMessage(int socketFd)
     }
 
     std::string request =
-        "SEND\n" + sender + "\n" + receiver + "\n" + subject + "\n";
+        "SEND\n" + receiver + "\n" + subject + "\n";
 
     std::cout << "Nachricht eingeben. Ein einzelner Punkt beendet die Eingabe.\n";
 
@@ -149,17 +164,22 @@ bool sendMessage(int socketFd)
     return sendAll(socketFd, request) && receiveStatus(socketFd);
 }
 
-// Fordert die Betreffzeilen aller Nachrichten eines Benutzers an.
+// Fordert die Betreffzeilen aller Nachrichten des angemeldeten Benutzers an.
 bool listMessages(int socketFd)
 {
-    std::string username;
     std::string line;
 
-    if (!readUsername("Benutzername: ", username) ||
-        !sendAll(socketFd, "LIST\n" + username + "\n") ||
+    if (!sendAll(socketFd, "LIST\n") ||
         !receiveLine(socketFd, line))
     {
         return false;
+    }
+
+    // ERR = nicht angemeldet. Die Sitzung bleibt offen.
+    if (line == "ERR")
+    {
+        std::cout << "ERR\n";
+        return true;
     }
 
     int count;
@@ -185,17 +205,12 @@ bool listMessages(int socketFd)
     return true;
 }
 
-// READ und DEL benoetigen Benutzername und Nachrichtennummer.
+// READ und DEL benoetigen nur die Nachrichtennummer,
+// der Benutzer wird vom Server aus der Sitzung uebernommen.
 bool readOrDeleteMessage(int socketFd, const std::string &command)
 {
-    std::string username;
     std::string numberText;
     std::string line;
-
-    if (!readUsername("Benutzername: ", username))
-    {
-        return false;
-    }
 
     int number;
 
@@ -215,7 +230,7 @@ bool readOrDeleteMessage(int socketFd, const std::string &command)
     }
 
     std::string request =
-        command + "\n" + username + "\n" + std::to_string(number) + "\n";
+        command + "\n" + std::to_string(number) + "\n";
 
     if (!sendAll(socketFd, request))
     {
@@ -319,7 +334,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::cout << "Verbunden. Befehle: SEND, LIST, READ, DEL, QUIT\n";
+    std::cout << "Verbunden. Befehle: LOGIN, SEND, LIST, READ, DEL, QUIT\n";
 
     std::string command;
     int exitCode = 0;
@@ -340,7 +355,11 @@ int main(int argc, char *argv[])
 
         bool success;
 
-        if (command == "SEND")
+        if (command == "LOGIN")
+        {
+            success = login(socketFd);
+        }
+        else if (command == "SEND")
         {
             success = sendMessage(socketFd);
         }
@@ -355,7 +374,7 @@ int main(int argc, char *argv[])
         else
         {
             std::cout << "Unbekannter Befehl. Erlaubt: "
-                      << "SEND, LIST, READ, DEL, QUIT\n";
+                      << "LOGIN, SEND, LIST, READ, DEL, QUIT\n";
             continue;
         }
 
