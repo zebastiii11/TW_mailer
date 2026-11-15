@@ -15,7 +15,7 @@
 
 
 namespace fs = std::filesystem;
-const std::size_t FILE_NUMBER_DIGITS = 10;
+const std::size_t file_numbers = 10;
 
 // selbige function wie im client
 bool parseNumber(const std::string &text, int minimum, int maximum, int &number)
@@ -116,7 +116,7 @@ std::vector<fs::path> getMessageFiles(const fs::path &inbox)
         std::string stem = path.stem().string();
  
         // Nur nachrichten mit .msg beachten
-        if (path.extension() != ".msg" || stem.size() != FILE_NUMBER_DIGITS ||
+        if (path.extension() != ".msg" || stem.size() != file_numbers ||
             !std::all_of(stem.begin(), stem.end(),
                          [](char c) { return c >= '0' && c <= '9'; }))
         {
@@ -126,12 +126,12 @@ std::vector<fs::path> getMessageFiles(const fs::path &inbox)
         files.push_back(path);
     }
  
-    // Gleich lange Namen mit fuehrenden Nullen: alphabetisch = numerisch.
+    // Gleich lange Namen mit führenden Nullen: alphabetisch = numerisch.
     std::sort(files.begin(), files.end());
     return files;
 }
 
-// Ermittelt den Dateinamen fuer die naechste Nachricht: hoechste Nummer + 1.
+// Ermittelt den Dateinamen für die nächste Nachricht: höchste Nummer + 1.
 bool getNextMessagePath(const fs::path &inbox, fs::path &nextPath)
 {
     std::vector<fs::path> files = getMessageFiles(inbox);
@@ -151,7 +151,7 @@ bool getNextMessagePath(const fs::path &inbox, fs::path &nextPath)
  
     // Nummer mit fuehrenden Nullen auf 10 Stellen auffuellen.
     std::string name = std::to_string(nextNumber);
-    name.insert(0, FILE_NUMBER_DIGITS - name.size(), '0');
+    name.insert(0, file_numbers - name.size(), '0');
  
     nextPath = inbox / (name + ".msg");
     return true;
