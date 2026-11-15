@@ -62,8 +62,7 @@ bool isValidUsername(const std::string &username)
  
     for (char character : username)
     {
-        if (!((character >= 'a' && character <= 'z') ||
-              (character >= '0' && character <= '9')))
+        if (!((character >= 'a' && character <= 'z') || (character >= '0' && character <= '9')))
         {
             return false;
         }
@@ -116,9 +115,7 @@ std::vector<fs::path> getMessageFiles(const fs::path &inbox)
         std::string stem = path.stem().string();
  
         // Nur nachrichten mit .msg beachten
-        if (path.extension() != ".msg" || stem.size() != file_numbers ||
-            !std::all_of(stem.begin(), stem.end(),
-                         [](char c) { return c >= '0' && c <= '9'; }))
+        if (path.extension() != ".msg" || stem.size() != file_numbers || !std::all_of(stem.begin(), stem.end(), [](char c)  { return c >= '0' && c <= '9'; }))
         {
             continue;
         }
@@ -186,8 +183,7 @@ bool handleList(int clientFd, const std::string &spoolDirectory, const std::stri
     return sendAll(clientFd, response);
 }
 
-bool handleRead(int clientFd, const std::string &spoolDirectory,
-                const std::string &loggedInUser)
+bool handleRead(int clientFd, const std::string &spoolDirectory, const std::string &loggedInUser)
 {
     std::string numberText;
  
