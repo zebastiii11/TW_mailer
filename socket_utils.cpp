@@ -10,12 +10,7 @@ bool sendAll(int socketFd, const std::string &text)
 
     while (totalSent < text.size())
     {
-        ssize_t sent = send(
-            socketFd,
-            text.data() + totalSent,
-            text.size() - totalSent,
-            MSG_NOSIGNAL
-        );
+        ssize_t sent = send(socketFd, text.data() + totalSent, text.size() - totalSent, MSG_NOSIGNAL);
 
         if (sent == -1 && errno == EINTR)
         {
@@ -27,7 +22,7 @@ bool sendAll(int socketFd, const std::string &text)
             return false;
         }
 
-        totalSent += static_cast<std::size_t>(sent);
+        totalSent += sent;
     }
 
     return true;

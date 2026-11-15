@@ -4,11 +4,11 @@
 #include <string>
 
 // Sendet den gesamten Text, ohne selbst einen Zeilenumbruch anzuhängen.
-// true = erfolgreich, false = Fehler
+// true ist erfolgreich und false ist Fehler
 bool sendAll(int socketFd, const std::string &text);
 
-// Empfängt eine Zeile und entfernt das abschließende '\n'.
-// true = vollständige Zeile, false = Verbindungsende oder Fehler
+// Empfängt eine Zeile und entfernt das abschließende \n
+// true ist vollständige Zeile und false ist Verbindungsende oder Fehler
 bool receiveLine(int socketFd, std::string &line);
 
 #endif

@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-// Prueft eine ganze Zahl innerhalb des erlaubten Bereichs.
+// Prueft eine ganze Zahl innerhalb des erlaubten Bereichs
 bool parseNumber(const std::string &text, int minimum, int maximum, int &number)
 {
     if (text.empty())
@@ -43,14 +43,14 @@ bool parseNumber(const std::string &text, int minimum, int maximum, int &number)
     return true;
 }
 
-// Gibt eine Aufforderung aus und liest eine Eingabezeile.
+// Gibt eine Aufforderung aus und liest eine Eingabezeile
 bool readInput(const std::string &prompt, std::string &text)
 {
     std::cout << prompt << std::flush;
     return static_cast<bool>(std::getline(std::cin, text));
 }
 
-// Benutzernamen: 1 bis 8 Zeichen, nur a-z und 0-9.
+// Benutzernamen: 1 bis 8 Zeichen, nur a-z und 0-9
 bool readUsername(const std::string &prompt, std::string &username)
 {
     while (readInput(prompt, username))
@@ -59,8 +59,7 @@ bool readUsername(const std::string &prompt, std::string &username)
 
         for (char character : username)
         {
-            if (!((character >= 'a' && character <= 'z') ||
-                  (character >= '0' && character <= '9')))
+            if (!((character >= 'a' && character <= 'z') || (character >= '0' && character <= '9')))
             {
                 valid = false;
             }
@@ -77,7 +76,7 @@ bool readUsername(const std::string &prompt, std::string &username)
     return false;
 }
 
-// Liest OK oder ERR. Auch nach ERR bleibt die Sitzung offen.
+// Liest OK oder ERR. Auch nach ERR bleibt die Sitzung offen
 bool receiveStatus(int socketFd)
 {
     std::string response;
@@ -97,24 +96,21 @@ bool receiveStatus(int socketFd)
     return true;
 }
 
-// Meldet einen Benutzer am Server an.
+// Meldet einen Benutzer am Server an
 bool login(int socketFd)
 {
     std::string username;
     std::string password;
 
-    if (!readUsername("Benutzername: ", username) ||
-        !readInput("Passwort: ", password))
+    if (!readUsername("Benutzername: ", username) || !readInput("Passwort: ", password))
     {
         return false;
     }
 
-    return sendAll(socketFd, "LOGIN\n" + username + "\n" + password + "\n") &&
-           receiveStatus(socketFd);
+    return sendAll(socketFd, "LOGIN\n" + username + "\n" + password + "\n") && receiveStatus(socketFd);
 }
 
-// Erfasst eine Nachricht und sendet sie an den Server.
-// Der Absender wird vom Server aus der Sitzung uebernommen.
+// Erfasst eine Nachricht und sendet sie an den Server, Der Absender wird vom Server aus der Sitzung uebernommen
 bool sendMessage(int socketFd)
 {
     std::string receiver;
@@ -141,8 +137,7 @@ bool sendMessage(int socketFd)
         std::cout << "Der Betreff ist zu lang.\n";
     }
 
-    std::string request =
-        "SEND\n" + receiver + "\n" + subject + "\n";
+    std::string request = "SEND\n" + receiver + "\n" + subject + "\n";
 
     std::cout << "Nachricht eingeben. Ein einzelner Punkt beendet die Eingabe.\n";
 
@@ -164,18 +159,17 @@ bool sendMessage(int socketFd)
     return sendAll(socketFd, request) && receiveStatus(socketFd);
 }
 
-// Fordert die Betreffzeilen aller Nachrichten des angemeldeten Benutzers an.
+// Fordert die Betreffzeilen aller Nachrichten des angemeldeten Benutzers an
 bool listMessages(int socketFd)
 {
     std::string line;
 
-    if (!sendAll(socketFd, "LIST\n") ||
-        !receiveLine(socketFd, line))
+    if (!sendAll(socketFd, "LIST\n") || !receiveLine(socketFd, line))
     {
         return false;
     }
 
-    // ERR = nicht angemeldet. Die Sitzung bleibt offen.
+    // ERR = nicht angemeldet, Sitzung bleibt offen
     if (line == "ERR")
     {
         std::cout << "ERR\n";
@@ -205,8 +199,7 @@ bool listMessages(int socketFd)
     return true;
 }
 
-// READ und DEL benoetigen nur die Nachrichtennummer,
-// der Benutzer wird vom Server aus der Sitzung uebernommen.
+// READ und DEL benoetigen nur die Nachrichtennummer, der Benutzer wird vom Server aus der Sitzung uebernommen
 bool readOrDeleteMessage(int socketFd, const std::string &command)
 {
     std::string numberText;
@@ -229,8 +222,7 @@ bool readOrDeleteMessage(int socketFd, const std::string &command)
         std::cout << "Bitte eine gueltige positive Zahl eingeben.\n";
     }
 
-    std::string request =
-        command + "\n" + std::to_string(number) + "\n";
+    std::string request = command + "\n" + std::to_string(number) + "\n";
 
     if (!sendAll(socketFd, request))
     {
@@ -242,7 +234,7 @@ bool readOrDeleteMessage(int socketFd, const std::string &command)
         return receiveStatus(socketFd);
     }
 
-    // Ab hier wird die Antwort auf READ verarbeitet.
+    // Ab hier wird die Antwort auf READ verarbeitet
     if (!receiveLine(socketFd, line))
     {
         return false;
@@ -262,7 +254,7 @@ bool readOrDeleteMessage(int socketFd, const std::string &command)
 
     std::cout << "OK\n";
 
-    // Zuerst Absender, Empfaenger und Betreff empfangen.
+    // Zuerst Absender, Empfaenger und Betreff empfangen
     for (int field = 0; field < 3; ++field)
     {
         if (!receiveLine(socketFd, line))
@@ -273,7 +265,7 @@ bool readOrDeleteMessage(int socketFd, const std::string &command)
         std::cout << line << '\n';
     }
 
-    // Danach den Nachrichtentext bis zur Punktzeile empfangen.
+    // Danach den Nachrichtentext bis zur Punktzeile empfangen
     while (receiveLine(socketFd, line))
     {
         if (line == ".")
@@ -289,7 +281,7 @@ bool readOrDeleteMessage(int socketFd, const std::string &command)
 
 int main(int argc, char *argv[])
 {
-    // IP-Adresse und Port aus dem Programmaufruf einlesen.
+    // IP-Adresse und Port aus dem Programmaufruf einlesen
     if (argc != 3)
     {
         std::cerr << "Aufruf: " << argv[0] << " <ip> <port>\n";
@@ -304,7 +296,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Serveradresse vorbereiten.
+    // Serveradresse vorbereiten
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(static_cast<unsigned short>(port));
@@ -325,9 +317,7 @@ int main(int argc, char *argv[])
     }
 
     // Verbindung zum Server herstellen.
-    if (connect(socketFd,
-                reinterpret_cast<sockaddr *>(&serverAddress),
-                sizeof(serverAddress)) == -1)
+    if (connect(socketFd, reinterpret_cast<sockaddr *>(&serverAddress), sizeof(serverAddress)) == -1)
     {
         std::perror("connect");
         close(socketFd);
@@ -339,7 +329,7 @@ int main(int argc, char *argv[])
     std::string command;
     int exitCode = 0;
 
-    // Befehle einlesen und die passende Funktion aufrufen.
+    // Befehle einlesen und die passende Funktion aufrufen
     while (true)
     {
         if (!readInput("Befehl: ", command) || command == "QUIT")
@@ -373,14 +363,13 @@ int main(int argc, char *argv[])
         }
         else
         {
-            std::cout << "Unbekannter Befehl. Erlaubt: "
-                      << "LOGIN, SEND, LIST, READ, DEL, QUIT\n";
+            std::cout << "Unbekannter Befehl. Erlaubt: " << "LOGIN, SEND, LIST, READ, DEL, QUIT\n";
             continue;
         }
 
         if (!success)
         {
-            // Bei Eingabeende nach Moeglichkeit sauber abmelden.
+            // Bei Eingabeende nach Moeglichkeit sauber abmelden
             if (std::cin.eof())
             {
                 if (!sendAll(socketFd, "QUIT\n"))
@@ -391,8 +380,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                std::cerr << "Fehler bei Eingabe, Verbindung "
-                          << "oder Serverantwort.\n";
+                std::cerr << "Fehler bei Eingabe, Verbindung " << "oder Serverantwort.\n";
                 exitCode = 1;
             }
 
@@ -400,7 +388,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Verbindung schliessen und Programm beenden.
+    // Verbindung schliessen und Programm beenden
     close(socketFd);
     return exitCode;
 }
